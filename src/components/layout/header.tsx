@@ -4,17 +4,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, School, LogIn, LogOut } from 'lucide-react';
+import { Menu, School, LogIn, LogOut, User as UserIcon, Loader2 } from 'lucide-react'; // Added UserIcon and Loader2
 import { useAuth } from '@/context/auth-context'; // Import the useAuth hook
+import { LoginDialog } from '@/components/auth/login-dialog'; // Import the LoginDialog
 
 export function Header() {
-  const { user, login, logout } = useAuth(); // Get auth state and functions
-
-  const handleLogin = () => {
-    // Simulate logging in as admin/user
-    const isAdmin = window.prompt("Login as admin? (yes/no)")?.toLowerCase() === 'yes';
-    login(isAdmin ? { id: 'admin-001', name: 'Admin User', isAdmin: true } : { id: 'user-123', name: 'Regular User', isAdmin: false });
-  };
+  const { user, logout, loading } = useAuth(); // Get auth state and functions, including loading
 
   const handleLogout = () => {
     logout();
@@ -29,7 +24,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-4 items-center">
+        <nav className="hidden md:flex gap-2 items-center">
            <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
             <Link href="/">Home</Link>
           </Button>
@@ -50,27 +45,47 @@ export function Header() {
               <Link href="/admin">Admin</Link>
             </Button>
            )}
-            {user ? (
-             <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
-               <LogOut className="mr-2 h-4 w-4" /> Logout ({user.name})
-             </Button>
+           {/* Auth Buttons */}
+            {loading ? (
+                <Button variant="ghost" disabled className="text-primary-foreground opacity-50">
+                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
+                </Button>
+            ) : user ? (
+             <div className="flex items-center gap-2">
+                <span className="text-sm hidden sm:inline">
+                  <UserIcon className="inline h-4 w-4 mr-1"/>
+                  {user.name}
+                </span>
+                <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+                   <LogOut className="mr-0 sm:mr-2 h-4 w-4" />
+                   <span className='hidden sm:inline'>Logout</span>
+                 </Button>
+             </div>
            ) : (
-             <Button variant="ghost" onClick={handleLogin} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
-               <LogIn className="mr-2 h-4 w-4" /> Login
-             </Button>
+             <LoginDialog>
+               <Button variant="ghost" className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+                 <LogIn className="mr-2 h-4 w-4" /> Login
+               </Button>
+             </LoginDialog>
            )}
         </nav>
 
         {/* Mobile Navigation */}
         <div className="md:hidden flex items-center gap-2">
-         {user ? (
-             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground p-1">
+         {loading ? (
+             <Button variant="ghost" size="icon" disabled className="text-primary-foreground opacity-50">
+                <Loader2 className="h-5 w-5 animate-spin" />
+             </Button>
+         ) : user ? (
+             <Button variant="ghost" size="icon" onClick={handleLogout} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground p-1">
                <LogOut className="h-5 w-5" />
              </Button>
            ) : (
-             <Button variant="ghost" size="sm" onClick={handleLogin} className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground p-1">
-               <LogIn className="h-5 w-5" />
-             </Button>
+             <LoginDialog>
+                 <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground p-1">
+                   <LogIn className="h-5 w-5" />
+                 </Button>
+             </LoginDialog>
            )}
           <Sheet>
             <SheetTrigger asChild>
@@ -96,7 +111,7 @@ export function Header() {
                 </Button>
                 <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/alumni/register">Alumni</Link>
-                </Button>
+                 </Button>
                  <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/contact">Contact Us</Link>
                  </Button>
@@ -105,8 +120,12 @@ export function Header() {
                     <Link href="/admin">Admin</Link>
                   </Button>
                  )}
-                 {/* Optional: Add login/logout to mobile menu too */}
-                 {/* {user ? (...) : (...)} */}
+                 {/* Display username in mobile menu */}
+                 {user && (
+                    <div className="mt-auto pt-4 border-t text-sm text-muted-foreground">
+                        Logged in as: {user.name}
+                    </div>
+                 )}
               </nav>
             </SheetContent>
           </Sheet>
