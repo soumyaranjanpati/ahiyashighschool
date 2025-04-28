@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Users, GraduationCap, FileText, Mail, ShieldCheck } from 'lucide-react'; // Updated ShieldCheck icon
+import { Users, GraduationCap, FileText, Mail } from 'lucide-react'; // Removed ShieldCheck
 
 export default function Home() {
   return (
@@ -74,11 +74,12 @@ export default function Home() {
           </CardContent>
         </Card>
 
-         {/* Link to Admin Panel */}
+         {/* Admin Panel Card Removed - Link is now conditional in Header */}
+         {/*
          <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="text-primary"/> {/* Use Lucide icon */}
+              <ShieldCheck className="text-primary"/>
               Admin Panel
             </CardTitle>
             <CardDescription>Manage site content and users.</CardDescription>
@@ -89,6 +90,7 @@ export default function Home() {
             </Link>
           </CardContent>
         </Card>
+        */}
       </div>
     </div>
   );
