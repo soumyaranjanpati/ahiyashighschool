@@ -2,29 +2,31 @@
 'use client';
 
 import { useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Users, UserPlus, Image as ImageIcon, Bell, ShieldCheck, GraduationCap } from 'lucide-react';
-import { addTeacher } from '@/services/teacherService'; // Import actual service
-import { addStudent } from '@/services/studentService'; // Import actual service
-import type { TeacherInput } from '@/types/teacher';
-import type { StudentInput } from '@/types/student';
+import { Users, UserPlus, Image as ImageIcon, Bell, ShieldCheck, GraduationCap, Loader2 } from 'lucide-react';
+// Import Server Actions instead of directly importing services
+import { handleAddTeacherAction, handleAddStudentAction } from '@/actions/adminActions';
+import type { TeacherActionState, StudentActionState } from '@/actions/adminActions';
 
-// Mock functions - replace with actual API calls (partially done for addTeacher/addStudent)
-// Upload photo still mock - requires backend storage setup
+// Mock functions - replace with actual API calls or Server Actions
+// Upload photo still mock - requires backend storage setup or separate server action
 const uploadPhoto = async (file: File, type: 'teacher' | 'student' | 'gallery'): Promise<{ success: boolean; message: string, url?: string }> => {
   console.log(`Uploading ${type} photo:`, file.name);
   // Simulate upload delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   // Simulate success and return a placeholder URL
-  const mockUrl = `https://picsum.photos/seed/${Date.now()}/200/200`; // Placeholder URL
-  console.log(`Simulated upload successful, URL: ${mockUrl}`);
+  // In a real app, this would involve uploading to storage (e.g., Firebase Storage, S3)
+  // and returning the actual URL. For now, it simulates failure.
+  // const mockUrl = `https://picsum.photos/seed/${Date.now()}/200/200`;
+  // console.log(`Simulated upload successful, URL: ${mockUrl}`);
   // return { success: true, message: `Photo '${file.name}' uploaded successfully!`, url: mockUrl };
-   return { success: false, message: `Photo upload simulation failed for ${file.name}. Storage not implemented.` };
+  return { success: false, message: `Photo upload simulation failed for ${file.name}. Storage not implemented.` };
 };
 
 const sendNotification = async (message: string) => {
@@ -34,32 +36,50 @@ const sendNotification = async (message: string) => {
   return { success: true, message: 'Notification sent successfully! (Simulation)' };
 };
 
+// Define initial states for Server Actions
+const initialTeacherState: TeacherActionState = { message: '', status: 'idle' };
+const initialStudentState: StudentActionState = { message: '', status: 'idle' };
+
+
+// SubmitButton Component to show pending status for Server Actions
+function SubmitButton({ children, loading }: { children: React.ReactNode, loading: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending || loading}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processing...
+        </>
+      ) : (
+        children
+      )}
+    </Button>
+  );
+}
+
 
 export default function AdminPage() {
-  // Teacher State
-  const [teacherName, setTeacherName] = useState('');
-  const [teacherSubject, setTeacherSubject] = useState('');
+  // Server Action states
+  const [teacherState, teacherFormAction] = useFormState(handleAddTeacherAction, initialTeacherState);
+  const [studentState, studentFormAction] = useFormState(handleAddStudentAction, initialStudentState);
+
+  // Local UI states
   const [teacherImageFile, setTeacherImageFile] = useState<File | null>(null);
-
-  // Student State
-  const [studentName, setStudentName] = useState('');
-  const [studentMajor, setStudentMajor] = useState('');
-  const [studentYear, setStudentYear] = useState<number | string>(''); // Use string for input, convert later
   const [studentImageFile, setStudentImageFile] = useState<File | null>(null);
-
-  // Photo Gallery State
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-
-  // Notification State
   const [notificationMessage, setNotificationMessage] = useState('');
 
-  // Loading State
-  const [isLoading, setIsLoading] = useState({
-    teacher: false,
-    student: false,
-    photo: false,
-    notification: false,
-  });
+  // Separate loading states for non-server-action operations
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+  const [isLoadingNotification, setIsLoadingNotification] = useState(false);
+
+  // Refs for resetting forms
+  const teacherFormRef = React.useRef<HTMLFormElement>(null);
+  const studentFormRef = React.useRef<HTMLFormElement>(null);
+  const photoFormRef = React.useRef<HTMLFormElement>(null);
+  const notificationFormRef = React.useRef<HTMLFormElement>(null);
+
 
   // Helper to reset file input visually
   const resetFileInput = (id: string) => {
@@ -67,134 +87,72 @@ export default function AdminPage() {
     if(fileInput) fileInput.value = '';
   }
 
-  // Handle Teacher Submit
-  const handleTeacherSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!teacherName || !teacherSubject) {
-      toast({ title: 'Error', description: 'Teacher name and subject are required.', variant: 'destructive' });
-      return;
-    }
-    setIsLoading(prev => ({ ...prev, teacher: true }));
-
-    let imageUrl: string | null = null;
-    // Handle image upload (simulation for now)
-    if (teacherImageFile) {
-      const uploadResult = await uploadPhoto(teacherImageFile, 'teacher');
-      if (!uploadResult.success) {
-         toast({ title: 'Image Upload Failed', description: uploadResult.message, variant: 'destructive' });
-         setIsLoading(prev => ({ ...prev, teacher: false }));
-         return; // Stop if image upload fails
+  // Effect to show toast messages based on Server Action state changes
+   React.useEffect(() => {
+      if (teacherState.status === 'success') {
+        toast({ title: 'Success', description: teacherState.message });
+        teacherFormRef.current?.reset(); // Reset the form visually
+        setTeacherImageFile(null); // Clear file state
+        resetFileInput('teacher-image-upload'); // Reset file input visually
+        // Reset state without re-triggering
+        // Consider a more robust state reset mechanism if needed
+      } else if (teacherState.status === 'error') {
+        toast({ title: 'Error', description: teacherState.message, variant: 'destructive' });
       }
-       imageUrl = uploadResult.url ?? null; // Use the returned URL
-    }
+   }, [teacherState]);
 
-    const teacherData: TeacherInput = {
-      name: teacherName,
-      subject: teacherSubject,
-      image: imageUrl,
-    };
-
-    try {
-      const newTeacherId = await addTeacher(teacherData);
-      toast({ title: 'Success', description: `Teacher '${teacherName}' added successfully with ID ${newTeacherId}.` });
-      // Reset form
-      setTeacherName('');
-      setTeacherSubject('');
-      setTeacherImageFile(null);
-      resetFileInput('teacher-image-upload');
-    } catch (error: any) {
-      console.error("Error adding teacher:", error);
-      toast({ title: 'Error Adding Teacher', description: error.message || 'An unknown error occurred.', variant: 'destructive' });
-    } finally {
-      setIsLoading(prev => ({ ...prev, teacher: false }));
-    }
-  };
-
-  // Handle Student Submit
-  const handleStudentSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     const yearNumber = typeof studentYear === 'string' ? parseInt(studentYear, 10) : studentYear;
-
-     if (!studentName || !studentMajor || !studentYear || isNaN(yearNumber) || yearNumber < 1) {
-       toast({ title: 'Error', description: 'Student name, major, and a valid year are required.', variant: 'destructive' });
-       return;
+   React.useEffect(() => {
+     if (studentState.status === 'success') {
+        toast({ title: 'Success', description: studentState.message });
+        studentFormRef.current?.reset(); // Reset the form visually
+        setStudentImageFile(null); // Clear file state
+        resetFileInput('student-image-upload'); // Reset file input visually
+     } else if (studentState.status === 'error') {
+        toast({ title: 'Error', description: studentState.message, variant: 'destructive' });
      }
-     setIsLoading(prev => ({ ...prev, student: true }));
-
-     let imageUrl: string | null = null;
-     // Handle image upload (simulation)
-     if (studentImageFile) {
-       const uploadResult = await uploadPhoto(studentImageFile, 'student');
-        if (!uploadResult.success) {
-            toast({ title: 'Image Upload Failed', description: uploadResult.message, variant: 'destructive' });
-            setIsLoading(prev => ({ ...prev, student: false }));
-            return; // Stop if image upload fails
-        }
-        imageUrl = uploadResult.url ?? null;
-     }
-
-     const studentData: StudentInput = {
-       name: studentName,
-       major: studentMajor,
-       year: yearNumber,
-       image: imageUrl,
-     };
-
-     try {
-       const newStudentId = await addStudent(studentData);
-       toast({ title: 'Success', description: `Student '${studentName}' added successfully with ID ${newStudentId}.` });
-       // Reset form
-       setStudentName('');
-       setStudentMajor('');
-       setStudentYear('');
-       setStudentImageFile(null);
-       resetFileInput('student-image-upload');
-     } catch (error: any) {
-        console.error("Error adding student:", error);
-        toast({ title: 'Error Adding Student', description: error.message || 'An unknown error occurred.', variant: 'destructive' });
-     } finally {
-        setIsLoading(prev => ({ ...prev, student: false }));
-     }
-   };
+   }, [studentState]);
 
 
-  // Handle Photo Gallery Upload (Still Mock)
+  // Handle Photo Gallery Upload (Still Mock, uses local state for loading)
   const handlePhotoUpload = async (e: React.FormEvent) => {
      e.preventDefault();
     if (!photoFile) {
       toast({ title: 'Error', description: 'Please select a photo to upload.', variant: 'destructive' });
       return;
     }
-    setIsLoading(prev => ({ ...prev, photo: true }));
+    setIsLoadingPhoto(true);
     const result = await uploadPhoto(photoFile, 'gallery');
-     setIsLoading(prev => ({ ...prev, photo: false }));
+    setIsLoadingPhoto(false);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
        setPhotoFile(null);
+       photoFormRef.current?.reset();
        resetFileInput('photo-upload');
     } else {
       toast({ title: 'Error', description: result.message, variant: 'destructive' });
     }
   };
 
-  // Handle Notification Send (Still Mock)
+  // Handle Notification Send (Still Mock, uses local state for loading)
   const handleNotificationSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!notificationMessage.trim()) {
       toast({ title: 'Error', description: 'Notification message cannot be empty.', variant: 'destructive' });
       return;
     }
-     setIsLoading(prev => ({ ...prev, notification: true }));
+     setIsLoadingNotification(true);
     const result = await sendNotification(notificationMessage);
-     setIsLoading(prev => ({ ...prev, notification: false }));
+     setIsLoadingNotification(false);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       setNotificationMessage('');
+      notificationFormRef.current?.reset();
     } else {
       toast({ title: 'Error', description: result.message, variant: 'destructive' });
     }
   };
 
+  // --- Render Section ---
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -211,22 +169,30 @@ export default function AdminPage() {
             <CardDescription>Enter the details for the new teacher.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleTeacherSubmit} className="space-y-4">
+            {/* Form now uses the Server Action */}
+            <form ref={teacherFormRef} action={teacherFormAction} className="space-y-4">
               <div>
                 <Label htmlFor="teacher-name">Teacher Name</Label>
-                <Input id="teacher-name" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} placeholder="e.g., Dr. Jane Foster" required disabled={isLoading.teacher} />
+                <Input id="teacher-name" name="teacherName" placeholder="e.g., Dr. Jane Foster" required />
               </div>
                <div>
                 <Label htmlFor="teacher-subject">Subject</Label>
-                <Input id="teacher-subject" value={teacherSubject} onChange={(e) => setTeacherSubject(e.target.value)} placeholder="e.g., Astrophysics" required disabled={isLoading.teacher}/>
+                <Input id="teacher-subject" name="teacherSubject" placeholder="e.g., Astrophysics" required />
               </div>
                <div>
                  <Label htmlFor="teacher-image-upload">Teacher Photo (Optional)</Label>
-                 <Input id="teacher-image-upload" type="file" accept="image/*" onChange={(e) => setTeacherImageFile(e.target.files ? e.target.files[0] : null)} disabled={isLoading.teacher}/>
+                 {/* File inputs aren't directly supported by standard FormData in Server Actions easily yet for server upload */}
+                 {/* Keeping this as a client-side state for now, potentially handle upload separately */}
+                 <Input
+                    id="teacher-image-upload"
+                    name="teacherImage" // Name needed if handling via FormData, but complex
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setTeacherImageFile(e.target.files ? e.target.files[0] : null)}
+                 />
+                 <p className="text-xs text-muted-foreground mt-1">Note: Photo upload is currently simulated/not functional.</p>
                </div>
-              <Button type="submit" disabled={isLoading.teacher}>
-                {isLoading.teacher ? 'Adding...' : 'Add Teacher'}
-              </Button>
+              <SubmitButton loading={false}>Add Teacher</SubmitButton>
             </form>
           </CardContent>
         </Card>
@@ -238,58 +204,77 @@ export default function AdminPage() {
             <CardDescription>Enter the details for the new student.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleStudentSubmit} className="space-y-4">
+             {/* Form now uses the Server Action */}
+            <form ref={studentFormRef} action={studentFormAction} className="space-y-4">
               <div>
                 <Label htmlFor="student-name">Student Name</Label>
-                <Input id="student-name" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="e.g., Peter Parker" required disabled={isLoading.student} />
+                <Input id="student-name" name="studentName" placeholder="e.g., Peter Parker" required />
               </div>
               <div>
                 <Label htmlFor="student-major">Major / Program</Label>
-                <Input id="student-major" value={studentMajor} onChange={(e) => setStudentMajor(e.target.value)} placeholder="e.g., Biochemistry" required disabled={isLoading.student} />
+                <Input id="student-major" name="studentMajor" placeholder="e.g., Biochemistry" required />
               </div>
                <div>
                  <Label htmlFor="student-year">Year</Label>
-                 <Input id="student-year" type="number" min="1" step="1" value={studentYear} onChange={(e) => setStudentYear(e.target.value)} placeholder="e.g., 3" required disabled={isLoading.student}/>
+                 <Input id="student-year" name="studentYear" type="number" min="1" step="1" placeholder="e.g., 3" required />
                </div>
                <div>
                  <Label htmlFor="student-image-upload">Student Photo (Optional)</Label>
-                 <Input id="student-image-upload" type="file" accept="image/*" onChange={(e) => setStudentImageFile(e.target.files ? e.target.files[0] : null)} disabled={isLoading.student}/>
+                  {/* File inputs complexity */}
+                 <Input
+                    id="student-image-upload"
+                    name="studentImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setStudentImageFile(e.target.files ? e.target.files[0] : null)}
+                  />
+                   <p className="text-xs text-muted-foreground mt-1">Note: Photo upload is currently simulated/not functional.</p>
                </div>
-              <Button type="submit" disabled={isLoading.student}>
-                 {isLoading.student ? 'Adding...' : 'Add Student'}
-              </Button>
+              <SubmitButton loading={false}>Add Student</SubmitButton>
             </form>
           </CardContent>
         </Card>
 
 
-        {/* Upload New Photo (Gallery) */}
+        {/* Upload New Photo (Gallery - Mock) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><ImageIcon className="text-primary"/> Upload Gallery Photo</CardTitle>
-            <CardDescription>Add a new photo to the school gallery.</CardDescription>
+            <CardDescription>Add a new photo to the school gallery (Simulation).</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handlePhotoUpload} className="space-y-4">
+            <form ref={photoFormRef} onSubmit={handlePhotoUpload} className="space-y-4">
               <div>
                 <Label htmlFor="photo-upload">Select Photo</Label>
-                <Input id="photo-upload" type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} required disabled={isLoading.photo}/>
+                <Input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)}
+                    required
+                    disabled={isLoadingPhoto}
+                />
               </div>
-              <Button type="submit" disabled={isLoading.photo}>
-                 {isLoading.photo ? 'Uploading...' : 'Upload Photo'}
+              <Button type="submit" disabled={isLoadingPhoto}>
+                 {isLoadingPhoto ? (
+                     <>
+                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                         Uploading...
+                     </>
+                    ) : 'Upload Photo'}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-         {/* Send Notification */}
+         {/* Send Notification (Mock) */}
         <Card className="md:col-span-2 lg:col-span-3"> {/* Adjust span for layout */}
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Bell className="text-accent"/> Send Notification</CardTitle>
-            <CardDescription>Broadcast a message (simulation).</CardDescription>
+            <CardDescription>Broadcast a message (Simulation).</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleNotificationSend} className="space-y-4">
+            <form ref={notificationFormRef} onSubmit={handleNotificationSend} className="space-y-4">
               <div>
                 <Label htmlFor="notification-message">Notification Message</Label>
                 <Textarea
@@ -299,12 +284,16 @@ export default function AdminPage() {
                   placeholder="Enter your notification message here..."
                   required
                   rows={4}
-                   disabled={isLoading.notification}
+                  disabled={isLoadingNotification}
                 />
               </div>
-              {/* Add target audience selection if needed */}
-              <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading.notification}>
-                {isLoading.notification ? 'Sending...' : 'Send Notification'}
+              <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoadingNotification}>
+                {isLoadingNotification ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                    </>
+                    ) : 'Send Notification'}
               </Button>
             </form>
           </CardContent>
