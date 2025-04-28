@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useActionState, useRef, useEffect } from 'react'; // Updated import: useActionState from react
+// Removed useFormState import from react-dom as it's deprecated in favor of useActionState
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Users, UserPlus, Image as ImageIcon, Bell, ShieldCheck, GraduationCap, 
 // Import Server Actions instead of directly importing services
 import { handleAddTeacherAction, handleAddStudentAction } from '@/actions/adminActions';
 import type { TeacherActionState, StudentActionState } from '@/actions/adminActions';
+import { useFormStatus } from 'react-dom'; // Keep useFormStatus import
 
 // Mock functions - replace with actual API calls or Server Actions
 // Upload photo still mock - requires backend storage setup or separate server action
@@ -60,9 +61,9 @@ function SubmitButton({ children, loading }: { children: React.ReactNode, loadin
 
 
 export default function AdminPage() {
-  // Server Action states
-  const [teacherState, teacherFormAction] = useFormState(handleAddTeacherAction, initialTeacherState);
-  const [studentState, studentFormAction] = useFormState(handleAddStudentAction, initialStudentState);
+  // Server Action states - Use useActionState instead of useFormState
+  const [teacherState, teacherFormAction] = useActionState(handleAddTeacherAction, initialTeacherState);
+  const [studentState, studentFormAction] = useActionState(handleAddStudentAction, initialStudentState);
 
   // Local UI states
   const [teacherImageFile, setTeacherImageFile] = useState<File | null>(null);
@@ -75,10 +76,10 @@ export default function AdminPage() {
   const [isLoadingNotification, setIsLoadingNotification] = useState(false);
 
   // Refs for resetting forms
-  const teacherFormRef = React.useRef<HTMLFormElement>(null);
-  const studentFormRef = React.useRef<HTMLFormElement>(null);
-  const photoFormRef = React.useRef<HTMLFormElement>(null);
-  const notificationFormRef = React.useRef<HTMLFormElement>(null);
+  const teacherFormRef = useRef<HTMLFormElement>(null);
+  const studentFormRef = useRef<HTMLFormElement>(null);
+  const photoFormRef = useRef<HTMLFormElement>(null);
+  const notificationFormRef = useRef<HTMLFormElement>(null);
 
 
   // Helper to reset file input visually
@@ -88,7 +89,7 @@ export default function AdminPage() {
   }
 
   // Effect to show toast messages based on Server Action state changes
-   React.useEffect(() => {
+   useEffect(() => {
       if (teacherState.status === 'success') {
         toast({ title: 'Success', description: teacherState.message });
         teacherFormRef.current?.reset(); // Reset the form visually
@@ -101,7 +102,7 @@ export default function AdminPage() {
       }
    }, [teacherState]);
 
-   React.useEffect(() => {
+   useEffect(() => {
      if (studentState.status === 'success') {
         toast({ title: 'Success', description: studentState.message });
         studentFormRef.current?.reset(); // Reset the form visually
