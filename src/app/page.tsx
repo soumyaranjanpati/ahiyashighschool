@@ -2,11 +2,24 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Users, GraduationCap, FileText, Mail } from 'lucide-react'; // Removed ShieldCheck
+import Image from 'next/image'; // Import next/image
+import { Users, GraduationCap, FileText, Mail } from 'lucide-react';
 
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8">
+      {/* Add High School Image */}
+      <div className="w-full max-w-5xl mb-8 overflow-hidden rounded-lg shadow-lg">
+        <Image
+          src="https://picsum.photos/seed/highschoolcampus/1200/400" // Placeholder image
+          alt="High School Campus"
+          width={1200}
+          height={400}
+          className="w-full h-auto object-cover"
+          priority // Load the image eagerly as it's above the fold
+        />
+      </div>
+
       <h1 className="text-4xl font-bold text-center text-primary">Welcome to Campus Connect</h1>
       <p className="text-lg text-center text-muted-foreground max-w-2xl">
         Your central hub for connecting with teachers, students, and alumni. Explore directories, register as alumni, and stay updated with school news.
@@ -75,22 +88,6 @@ export default function Home() {
         </Card>
 
          {/* Admin Panel Card Removed - Link is now conditional in Header */}
-         {/*
-         <Card className="hover:shadow-lg transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="text-primary"/>
-              Admin Panel
-            </CardTitle>
-            <CardDescription>Manage site content and users.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/admin">
-              <Button variant="secondary">Go to Admin</Button>
-            </Link>
-          </CardContent>
-        </Card>
-        */}
       </div>
     </div>
   );
