@@ -3,12 +3,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
-import { Users, GraduationCap, FileText, Mail } from 'lucide-react';
+import { Users, GraduationCap, FileText, Mail, Camera } from 'lucide-react'; // Added Camera icon
 
 export default function Home() {
+  const galleryImages = [
+    { seed: 'schoollife1', alt: 'Students studying in the library' },
+    { seed: 'schoollife2', alt: 'Students playing sports on the field' },
+    { seed: 'schoollife3', alt: 'School band performing' },
+    { seed: 'schoollife4', alt: 'Art class creations' },
+    { seed: 'schoollife5', alt: 'Science lab experiment' },
+  ];
+
   return (
     <div className="flex flex-col items-center justify-center space-y-8">
-      {/* Add High School Image */}
+      {/* High School Image */}
       <div className="w-full max-w-5xl mb-8 overflow-hidden rounded-lg shadow-lg">
         <Image
           src="https://picsum.photos/seed/highschoolcampus/1200/400" // Placeholder image
@@ -25,6 +33,7 @@ export default function Home() {
         Your central hub for connecting with teachers, students, and alumni at Ahiyas high school. Explore directories, register as alumni, and stay updated with school news.
       </p>
 
+      {/* Card Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader>
@@ -86,8 +95,29 @@ export default function Home() {
             </Link>
           </CardContent>
         </Card>
+      </div>
 
-         {/* Admin Panel Card Removed - Link is now conditional in Header */}
+      {/* Scrolling Image Section */}
+      <div className="w-full max-w-5xl mt-12">
+        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+            <Camera className="text-primary"/>
+            Glimpses of School Life
+        </h2>
+        <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-secondary">
+          {galleryImages.map((image, index) => (
+            <div key={index} className="flex-shrink-0 w-64 h-48 rounded-lg overflow-hidden shadow-md">
+              <Image
+                src={`https://picsum.photos/seed/${image.seed}/400/300`}
+                alt={image.alt}
+                width={400}
+                height={300}
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+          ))}
+        </div>
+         {/* Add Tailwind plugin if scrollbar styling is desired: npm i -D tailwind-scrollbar */}
+         {/* And add require('tailwind-scrollbar') to plugins in tailwind.config.js */}
       </div>
     </div>
   );
