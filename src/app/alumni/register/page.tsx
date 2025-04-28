@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react'; // Import Loader2
+import { useState } from 'react'; // Import useState
 
 const alumniFormSchema = z.object({
   fullName: z.string().min(2, {
@@ -46,25 +48,52 @@ const defaultValues: Partial<AlumniFormValues> = {
 };
 
 export default function AlumniRegistrationPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
   const form = useForm<AlumniFormValues>({
     resolver: zodResolver(alumniFormSchema),
     defaultValues,
     mode: 'onChange',
   });
 
-  function onSubmit(data: AlumniFormValues) {
-    // TODO: Implement actual form submission logic (e.g., API call)
-    console.log(data);
-    toast({
-      title: 'Registration Submitted!',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      variant: 'default', // Use 'default' for success, matches accent color usage
-    });
-    form.reset(); // Optionally reset form after submission
+  async function onSubmit(data: AlumniFormValues) {
+    setIsSubmitting(true); // Set submitting state to true
+    try {
+      const response = await fetch('/api/alumni/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle specific errors from the API or show a generic message
+        const errorMessage = result.error || `Registration failed: ${response.statusText}`;
+         toast({
+           title: 'Registration Failed',
+           description: errorMessage,
+           variant: 'destructive',
+         });
+      } else {
+        toast({
+          title: 'Registration Submitted!',
+          description: `Thank you, ${data.fullName}! Your registration has been received.`,
+          variant: 'default', // Use 'default' for success
+        });
+        form.reset(); // Reset form on successful submission
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false); // Set submitting state back to false
+    }
   }
 
   return (
@@ -86,7 +115,7 @@ export default function AlumniRegistrationPage() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Jane Doe" {...field} />
+                      <Input placeholder="e.g., Jane Doe" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +128,7 @@ export default function AlumniRegistrationPage() {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="e.g., jane.doe@example.com" {...field} />
+                      <Input type="email" placeholder="e.g., jane.doe@example.com" {...field} disabled={isSubmitting} />
                     </FormControl>
                      <FormDescription>
                       We'll use this to keep you updated.
@@ -116,7 +145,7 @@ export default function AlumniRegistrationPage() {
                     <FormItem>
                       <FormLabel>Graduation Year</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 2015" {...field} />
+                        <Input type="number" placeholder="e.g., 2015" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -129,7 +158,7 @@ export default function AlumniRegistrationPage() {
                     <FormItem>
                       <FormLabel>Major / Field of Study</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Computer Science" {...field} />
+                        <Input placeholder="e.g., Computer Science" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -143,7 +172,7 @@ export default function AlumniRegistrationPage() {
                   <FormItem>
                     <FormLabel>Current Occupation (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Software Engineer" {...field} />
+                      <Input placeholder="e.g., Software Engineer" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,6 +189,7 @@ export default function AlumniRegistrationPage() {
                         placeholder="Share a message or update..."
                         className="resize-none"
                         {...field}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormDescription>
@@ -169,7 +199,16 @@ export default function AlumniRegistrationPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">Register</Button>
+              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isSubmitting}>
+                 {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Register'
+                )}
+              </Button>
             </form>
           </Form>
         </CardContent>
