@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -14,6 +15,9 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-4">
+           <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+            <Link href="/">Home</Link>
+          </Button>
           <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
             <Link href="/teachers">Teachers</Link>
           </Button>
@@ -22,6 +26,9 @@ export function Header() {
           </Button>
           <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
             <Link href="/alumni/register">Alumni</Link>
+          </Button>
+           <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+            <Link href="/contact">Contact Us</Link>
           </Button>
            <Button variant="ghost" asChild className="text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
             <Link href="/admin">Admin</Link>
@@ -43,6 +50,9 @@ export function Header() {
                     <School className="h-6 w-6 text-primary" />
                     <span className="text-lg font-semibold text-primary">Campus Connect</span>
                   </Link>
+                 <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
+                  <Link href="/">Home</Link>
+                 </Button>
                 <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/teachers">Teachers</Link>
                 </Button>
@@ -52,6 +62,9 @@ export function Header() {
                 <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/alumni/register">Alumni</Link>
                 </Button>
+                 <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
+                  <Link href="/contact">Contact Us</Link>
+                 </Button>
                  <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/admin">Admin</Link>
                  </Button>

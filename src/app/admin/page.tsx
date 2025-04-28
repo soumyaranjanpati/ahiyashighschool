@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Users, UserPlus, Image as ImageIcon, Bell } from 'lucide-react';
+import { Users, UserPlus, Image as ImageIcon, Bell, ShieldCheck } from 'lucide-react'; // Import ShieldCheck
 
 // Mock functions - replace with actual API calls
 const uploadPhoto = async (file: File) => {
@@ -109,7 +110,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold flex items-center gap-2">
-         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-check text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+         <ShieldCheck className="text-primary"/> {/* Use Lucide icon */}
         Admin Panel
       </h1>
       <p className="text-muted-foreground">Manage school content and send notifications.</p>
@@ -191,4 +192,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
