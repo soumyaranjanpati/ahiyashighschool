@@ -12,7 +12,7 @@ export default function Home() {
       <div className="w-full max-w-5xl mb-8 overflow-hidden rounded-lg shadow-lg">
         <Image
           src="https://picsum.photos/seed/highschoolcampus/1200/400" // Placeholder image
-          alt="High School Campus"
+          alt="Ahiyas high school Campus"
           width={1200}
           height={400}
           className="w-full h-auto object-cover"
@@ -20,9 +20,9 @@ export default function Home() {
         />
       </div>
 
-      <h1 className="text-4xl font-bold text-center text-primary">Welcome to Campus Connect</h1>
+      <h1 className="text-4xl font-bold text-center text-primary">Welcome to Ahiyas high school</h1>
       <p className="text-lg text-center text-muted-foreground max-w-2xl">
-        Your central hub for connecting with teachers, students, and alumni. Explore directories, register as alumni, and stay updated with school news.
+        Your central hub for connecting with teachers, students, and alumni at Ahiyas high school. Explore directories, register as alumni, and stay updated with school news.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">

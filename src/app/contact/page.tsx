@@ -19,7 +19,7 @@ export default function ContactPage() {
             <CardDescription>Visit us at our campus.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="font-semibold">Campus Connect Academy</p>
+            <p className="font-semibold">Ahiyas high school</p>
             <p>123 Learning Lane</p>
             <p>Knowledge City, EDU 54321</p>
             <p>United States</p>
@@ -60,20 +60,20 @@ export default function ContactPage() {
           <CardContent className="space-y-2">
              <p>
               <span className="font-semibold">General Info:</span>{' '}
-              <a href="mailto:info@campusconnect.edu" className="text-primary hover:underline">
-                info@campusconnect.edu
+              <a href="mailto:info@ahiyashs.edu" className="text-primary hover:underline">
+                info@ahiyashs.edu
               </a>
             </p>
              <p>
               <span className="font-semibold">Support:</span>{' '}
-              <a href="mailto:support@campusconnect.edu" className="text-primary hover:underline">
-                support@campusconnect.edu
+              <a href="mailto:support@ahiyashs.edu" className="text-primary hover:underline">
+                support@ahiyashs.edu
               </a>
             </p>
              <p>
               <span className="font-semibold">Alumni Relations:</span>{' '}
-              <a href="mailto:alumni@campusconnect.edu" className="text-primary hover:underline">
-                alumni@campusconnect.edu
+              <a href="mailto:alumni@ahiyashs.edu" className="text-primary hover:underline">
+                alumni@ahiyashs.edu
               </a>
             </p>
              <p className="text-sm text-muted-foreground mt-2">We typically respond within 24-48 business hours.</p>

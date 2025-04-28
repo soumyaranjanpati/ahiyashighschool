@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Campus Connect',
-  description: 'Connecting the school community',
+  title: 'Ahiyas high school',
+  description: 'Connecting the Ahiyas high school community',
 };
 
 export default function RootLayout({

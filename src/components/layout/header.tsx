@@ -20,7 +20,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <School className="h-6 w-6" />
-          <span className="text-xl font-bold">Campus Connect</span>
+          <span className="text-xl font-bold">Ahiyas high school</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -98,7 +98,7 @@ export function Header() {
               <nav className="flex flex-col gap-4 pt-8">
                  <Link href="/" className="flex items-center gap-2 pb-4 border-b mb-4">
                     <School className="h-6 w-6 text-primary" />
-                    <span className="text-lg font-semibold text-primary">Campus Connect</span>
+                    <span className="text-lg font-semibold text-primary">Ahiyas high school</span>
                   </Link>
                  <Button variant="link" asChild className="justify-start text-foreground hover:text-primary">
                   <Link href="/">Home</Link>
